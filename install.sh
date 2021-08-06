@@ -16,9 +16,11 @@ if [[ ! -d '$DEST' ]]; then
 fi
 
 # Install some require software
+# ---------------------------------------------------\
 yum install epel-release yum-utils -y
 
-# Add NGINX official repo
+# Add NGINX official repo and install him
+# ---------------------------------------------------\
 # http://nginx.org/en/linux_packages.html
 cat > /etc/yum.repos.d/nginx.repo <<_EOF_
 [nginx-stable]
@@ -41,6 +43,7 @@ yum-config-manager --enable nginx-mainline
 yum install nginx -y
 
 # SELinux module
+# ---------------------------------------------------\
 cat > $DEST/nginx.te <<_EOF_
 module nginx 1.0;
 require {
@@ -65,4 +68,18 @@ semodule_package  -m $DEST/nginx.mod -o $DEST/nginx.pp
 semodule -i $DEST/nginx.pp
 
 # Enable and run NGINX
+# ---------------------------------------------------\
 systemctl enable --now nginx
+
+# Checking service
+# ---------------------------------------------------\
+if [[ systemctl is-active --quiet nginx ]]; then
+	echo -e "NGINX is Running\Done!"
+else
+	echo -e "NGINX has Stopped status!"
+	nginx -t
+	echo -e "Please follow NGINX status bellow. Bye."
+fi
+
+
+
