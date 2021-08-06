@@ -73,12 +73,12 @@ systemctl enable --now nginx
 
 # Checking service
 # ---------------------------------------------------\
-if [[ systemctl is-active --quiet nginx ]]; then
-	echo -e "NGINX is Running\Done!"
+if (systemctl is-active --quiet nginx); then
+        echo -e "NGINX is Running\nDone!"
 else
-	echo -e "NGINX has Stopped status!"
-	nginx -t
-	echo -e "Please follow NGINX status bellow. Bye."
+    	echo -e "NGINX has Stopped status!"
+        nginx -t
+        echo -e "Please follow NGINX status bellow. Bye."
 fi
 
 
