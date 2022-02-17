@@ -15,9 +15,28 @@ if [[ ! -d '$DEST' ]]; then
 	mkdir -p $DEST
 fi
 
+# Checks supporting distros
+checkDistro() {
+# Checking distro
+if [ -e /etc/centos-release ]; then
+    DISTRO=`cat /etc/redhat-release | awk '{print $1,$4}'`
+    RPM=1
+elif [ -e /etc/fedora-release ]; then
+    DISTRO=`cat /etc/fedora-release | awk '{print ($1,$3~/^[0-9]/?$3:$4)}'`
+    RPM=2
+elif [ -e /etc/os-release ]; then
+    DISTRO=`lsb_release -d | awk -F"\t" '{print $2}'`
+    RPM=0
+else
+    Error "Your distribution is not supported (yet)"
+    exit 1
+fi
+}
+
+centos() {
 # Install some require software
 # ---------------------------------------------------\
-yum install epel-release yum-utils -y
+yum install epel-release yum-utils policycoreutils-python -y
 
 # Add NGINX official repo and install him
 # ---------------------------------------------------\
@@ -41,6 +60,21 @@ _EOF_
 
 yum-config-manager --enable nginx-mainline
 yum install nginx -y
+}
+
+fedora() {
+    dnf -y install nginx
+}
+
+# Checking distro
+if [[ "$RPM" -eq "1" ]]; then
+    centos
+elif [[ "$RPM" -eq "2" ]]
+    fedora
+else
+    echo "Unknown distro. Exit."
+    exit 1
+fi
 
 # SELinux module
 # ---------------------------------------------------\
@@ -70,6 +104,10 @@ semodule -i $DEST/nginx.pp
 # Enable and run NGINX
 # ---------------------------------------------------\
 systemctl enable --now nginx
+
+firewall-cmd --permanent --add-service=http
+firewall-cmd --permanent --add-service=https
+firewall-cmd --reload
 
 # Checking service
 # ---------------------------------------------------\
